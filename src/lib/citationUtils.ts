@@ -1,9 +1,6 @@
 import type { ParsedCitation } from "@/types/citation"
 
 /**
- * Parses a citation string in the format:
- * CitationCharLocation(cited_text='...', document_index=0, document_title='Detailed Notes', end_char_index=154, start_char_index=0, type='char_location')
- * 
  * @param citationStr - The citation string to parse
  * @returns ParsedCitation object or null if parsing fails
  */
@@ -44,8 +41,8 @@ export const parseCitationString = (citationStr: string): ParsedCitation | null 
       citedText,
       documentIndex,
       documentTitle,
-      metCriteria: [], // These will be populated by context if needed
-      allCriteria: [] // These will be populated by context if needed
+      metCriteria: [],
+      allCriteria: []
     }
   } catch (error) {
     console.error('Error parsing citation string:', error, citationStr)

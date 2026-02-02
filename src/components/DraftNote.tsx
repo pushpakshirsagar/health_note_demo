@@ -7,7 +7,7 @@ import { useAppData } from "@/context/AppDataContext"
 import type { ParsedCitation } from "@/types/citation"
 import { useDraftNote } from "@/hooks/useDraftNote"
 import { CriteriaEditModal } from "./CriteriaEditModal"
-
+import { parseCitationString } from "@/lib/citationUtils"
 const DraftNote = () => {
     const { setSelectedCitations, activeTab, setActiveTab, metCriteria, allCriteria } = useAppData()
     const { downloadAsText, copyToClipboard } = useDraftNote()
