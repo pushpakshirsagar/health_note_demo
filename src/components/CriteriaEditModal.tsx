@@ -96,7 +96,9 @@ export const CriteriaEditModal = ({
               <div key={guideline.guideline_number} className="space-y-2">
                 <Textarea
                   value={editedCriteria.find(g => g.guideline_number === guideline.guideline_number)?.report || guideline.report}
+                  disabled={mode === "focus"}
                   onChange={(e) => {
+                    if (mode !== "focus") return;
                     setEditedCriteria(prev => {
                       const index = prev.findIndex(g => g.guideline_number === guideline.guideline_number)
                       if (index !== -1) {
@@ -105,7 +107,7 @@ export const CriteriaEditModal = ({
                       return [...prev]
                     })
                   }}
-                  className="min-h-24"
+                  className="min-h-24 border-none h-auto shadow-none disabled:opacity-100 !focus-visible:shadow-none focus:shadow-none" 
                 />
               </div>
             ))}
