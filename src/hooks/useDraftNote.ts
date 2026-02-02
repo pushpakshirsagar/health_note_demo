@@ -11,10 +11,8 @@ export const useDraftNote = () => {
     try {
       const content = getCriteriaContent(criteria);
       navigator.clipboard.writeText(content)
-      console.log('Content saved to clipboard')
       toast.success("Content saved to clipboard")
     } catch (error) {
-      console.error('Error copying content to clipboard:', error)
       toast.error('Error copying content to clipboard')
     }
   }, [])
@@ -25,7 +23,7 @@ export const useDraftNote = () => {
     criteria.forEach((guideline) => {
       content += `${guideline.guideline_number}. ${guideline.report}\n`
       if (guideline.citations && guideline.citations.length > 0) {
-        content += `[Has ${guideline.citations.length} citation(s)]\n`
+        content += `${guideline.citations.length}\n`
       }
       content += "\n"
     })
@@ -33,8 +31,7 @@ export const useDraftNote = () => {
   }, [])
 
   const downloadAsText = useCallback((criteria:Guideline[],activeTab:string) => {
-    let content = "Utilization Review Draft Note\n"
-    content += "=".repeat(50) + "\n\n"
+    let content = ""
 
     const tabTitle = activeTab === "met" ? "MET CRITERIA" : "ALL CRITERIA"
     
