@@ -42,7 +42,6 @@ export const useDraftNote = () => {
     content += "-".repeat(50) + "\n\n"
     content += getCriteriaContent(criteria);
     
-    // Create blob and download
     const blob = new Blob([content], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')

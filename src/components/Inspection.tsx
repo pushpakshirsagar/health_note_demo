@@ -27,13 +27,13 @@ const Inspection = () => {
     handleNextCitationMatch,
     handlePreviousCitationMatch,
     handleCitationSearchKeyDown,
-    handleClearCitationSearch
+    handleClearCitationSearch,
   } = useSearch({
     noteText,
     selectedCitations,
     isActive,
     searchQuery,
-    setSearchQuery
+    setSearchQuery,
   })
 
 
@@ -66,11 +66,9 @@ const Inspection = () => {
     }
   }, [selectedCitations, isActive, searchQuery])
 
-  // Highlight text with search matches
   const renderHighlightedText = () => {
-    if (!noteText) return null
 
-    // Combine citations, citation search matches, and note search matches
+    if (!noteText) return null
     const allHighlights = [
       ...searchMatches.map((m, idx) => ({ ...m, type: 'search' as const, matchIndex: idx })),
       ...citationMatches.map((m, idx) => ({ ...m, type: 'citationSearch' as const, matchIndex: idx }))
@@ -103,12 +101,8 @@ const Inspection = () => {
         highlight.matchIndex === currentCitationMatchIndex
 
       const className = highlight.type === 'citationSearch'
-        ? isCurrentCitationMatch
-          ? "bg-green-400 dark:bg-green-600 px-1 rounded font-semibold"
-          : "bg-green-200 dark:bg-green-800 px-1 rounded"
-        : isCurrentSearchMatch
-        ? "bg-blue-300 dark:bg-blue-700 px-1 rounded font-semibold"
-        : "bg-blue-200 dark:bg-blue-800 px-1 rounded"
+        ? isCurrentCitationMatch ? "bg-blue-400": "bg-blue-200"
+        : isCurrentSearchMatch   ? "bg-yellow-400" : "bg-yellow-200"
 
       parts.push(
         <span
@@ -130,7 +124,6 @@ const Inspection = () => {
       lastIndex = highlight.endIndex
     })
 
-    // Add remaining text
     if (lastIndex < noteText.length) {
       parts.push(
         <span key="text-end">
@@ -262,7 +255,7 @@ const Inspection = () => {
             </div>
             
             {renderHighlightedText()}
-            {/* <div className="text-sm leading-relaxed">{noteText}</div> */}
+
           </>
         ) : <>{renderHighlightedText()}</>}
       </div>

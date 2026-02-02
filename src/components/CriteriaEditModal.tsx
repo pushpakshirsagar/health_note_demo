@@ -4,13 +4,14 @@ import { Textarea } from "./ui/textarea"
 import { XIcon, CopyIcon, DownloadIcon, EditIcon } from "lucide-react"
 import { useDraftNote } from "@/hooks/useDraftNote"
 import type { Guideline } from "@/types/citation"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
+import { useAppData } from "@/context/AppDataContext"
 
 interface CriteriaEditModalProps {
   isOpen: boolean
   onClose: () => void
   mode: "edit" | "focus"
-  criteria: any[]
-  activeTab: string
+  criteria?: any[]
   setIsEditModalOpen?: (isEditModalOpen: boolean) => void
   setIsFocusModalOpen?: (isFocusModalOpen: boolean) => void
 }
@@ -19,81 +20,80 @@ export const CriteriaEditModal = ({
   isOpen,
   onClose,
   mode,
-  criteria,
   setIsEditModalOpen,
   setIsFocusModalOpen,
 }: CriteriaEditModalProps) => {
   const { downloadAsText, copyToClipboard } = useDraftNote()
   const [editedCriteria, setEditedCriteria] = useState<Guideline[]>([])
-
+  const { allCriteria, metCriteria } = useAppData()
+  const [activeTab, setActiveTab] = useState("met")
   useEffect(() => {
-    if (isOpen && criteria) {
+    if (isOpen) {
+      const currentCriteria = activeTab === "met" ? metCriteria : allCriteria
       const initial: Guideline[] = []
-      criteria.forEach((guideline: any) => {
+      currentCriteria.forEach((guideline: any) => {
         initial.push(guideline)
       })
       setEditedCriteria(initial)
     }
-  }, [isOpen, criteria])
+  }, [isOpen, activeTab])
 
   if (!isOpen) return null
-
-
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Overlay */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
-      <div className="relative z-50 w-full max-w-4xl max-h-[90vh] bg-background rounded-lg shadow-lg flex flex-col">
+      <div className="relative z-50 w-full max-w-4xl max-h-140 scroll-auto bg-background rounded-lg shadow-lg flex flex-col">
+        
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-semibold">
-            {mode === "edit" ? "Edit Criteria" : "Focus Mode"}
+            {mode === "edit" ? "Edit Criteria" : "Focus on Criteria"}
           </h2>
           <div className="flex items-center gap-2">
-            {mode === "edit" ? (
+
+            <Button variant="ghost" size="icon" onClick={() => copyToClipboard(editedCriteria)}>
+              <CopyIcon className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => downloadAsText(editedCriteria)}>
+              <DownloadIcon className="w-4 h-4" />
+            </Button>
+
+            {mode !== "edit" && (
               <>
-                <Button variant="ghost" size="icon" onClick={() => copyToClipboard(editedCriteria)}>
-                  <CopyIcon className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => downloadAsText(editedCriteria)}>
-                  <DownloadIcon className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={onClose}>
-                  <XIcon className="w-4 h-4" />
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="ghost" size="icon" onClick={() => copyToClipboard(editedCriteria)}>
-                  <CopyIcon className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => downloadAsText(editedCriteria)}>
-                  <DownloadIcon className="w-4 h-4" />
-                </Button>
                 <Button variant="ghost" size="icon" onClick={() => {
-                    setIsEditModalOpen?.(true);
-                    setIsFocusModalOpen?.(false)
+                  setIsEditModalOpen?.(true);
+                  setIsFocusModalOpen?.(false)
                 }}>
                   <EditIcon className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={onClose}>
-                  <XIcon className="w-4 h-4" />
-                </Button>
               </>
             )}
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <XIcon className="w-4 h-4" />
+            </Button>
           </div>
         </div>
 
+        <div className="p-4 border-b min-w-0 shrink-0">
+          <TabsList variant="line">
+            <TabsTrigger value="met">Met Criteria</TabsTrigger>
+            <TabsTrigger value="criteria">All Criteria</TabsTrigger>
+          </TabsList>
+        </div>
+
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+         <TabsContent value={activeTab} className="mt-0">
+            <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-4">
-            {criteria.map((guideline: any) => (
+            {editedCriteria.map((guideline: any) => (
               <div key={guideline.guideline_number} className="space-y-2">
                 <Textarea
                   value={editedCriteria.find(g => g.guideline_number === guideline.guideline_number)?.report || guideline.report}
@@ -112,6 +112,10 @@ export const CriteriaEditModal = ({
             ))}
           </div>
         </div>
+         </TabsContent> 
+          </Tabs>
+
+      
       </div>
     </div>
   )

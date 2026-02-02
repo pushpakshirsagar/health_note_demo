@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useMemo } from "react"
+import React, { useState, useEffect, useRef, useMemo, useCallback, use } from "react"
 import type { ParsedCitation } from "@/types/citation"
+import { useAppData } from "@/context/AppDataContext"
 
 interface SearchMatch {
   startIndex: number
@@ -20,6 +21,17 @@ interface UseSearchProps {
   setSearchQuery: (query: string) => void
 }
 
+function useDebouncedValue<T>(value: T, delay = 250) {
+  const [debounced, setDebounced] = useState(value)
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setDebounced(value), delay)
+    return () => window.clearTimeout(id)
+  }, [value, delay])
+
+  return debounced
+}
+
 export const useSearch = ({
   noteText,
   selectedCitations,
@@ -27,20 +39,21 @@ export const useSearch = ({
   searchQuery,
   setSearchQuery
 }: UseSearchProps) => {
-  // Note search state
+
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0)
   const matchRefs = useRef<(HTMLSpanElement | null)[]>([])
 
-  // Citation search state
   const [citationSearchQuery, setCitationSearchQuery] = useState("")
   const [currentCitationMatchIndex, setCurrentCitationMatchIndex] = useState(0)
   const citationMatchRefs = useRef<(HTMLSpanElement | null)[]>([])
 
-  // Find all search matches in note text
+
+const debouncedQuery = useDebouncedValue(searchQuery, 250)
+
   const searchMatches = useMemo((): SearchMatch[] => {
-    if (!searchQuery || !noteText) return []
+    if (!debouncedQuery || !noteText) return []
     
-    const query = searchQuery.toLowerCase()
+    const query = debouncedQuery.toLowerCase()
     const text = noteText.toLowerCase()
     const matches: SearchMatch[] = []
     let startIndex = 0
@@ -56,13 +69,15 @@ export const useSearch = ({
     }
 
     return matches
-  }, [searchQuery, noteText])
+  }, [debouncedQuery, noteText])
 
-  // Find all citation matches (search in citation text)
+
+  const debouncedCitationQuery = useDebouncedValue(citationSearchQuery, 250)
+
   const citationMatches = useMemo((): CitationMatch[] => {
-    if (!citationSearchQuery || selectedCitations.length === 0) return []
+    if (!debouncedCitationQuery || selectedCitations.length === 0) return []
     
-    const query = citationSearchQuery.toLowerCase()
+    const query = debouncedCitationQuery.toLowerCase()
     const matches: CitationMatch[] = []
     
     selectedCitations.forEach((citation, citationIdx) => {
@@ -82,9 +97,8 @@ export const useSearch = ({
     })
     
     return matches.sort((a, b) => a.startIndex - b.startIndex)
-  }, [citationSearchQuery, selectedCitations])
+  }, [debouncedCitationQuery, selectedCitations])
 
-  // Reset current match when search changes
   useEffect(() => {
     if (searchMatches.length > 0) {
       setCurrentMatchIndex(0)
@@ -93,7 +107,6 @@ export const useSearch = ({
     }
   }, [searchQuery, searchMatches.length])
 
-  // Reset current citation match when citation search changes
   useEffect(() => {
     if (citationMatches.length > 0) {
       setCurrentCitationMatchIndex(0)
@@ -102,7 +115,6 @@ export const useSearch = ({
     }
   }, [citationSearchQuery, citationMatches.length])
 
-  // Set default citation search query to first citation's text when citations are loaded
   useEffect(() => {
     if (isActive && selectedCitations.length > 0) {
       const firstCitation = selectedCitations[0]
@@ -170,7 +182,6 @@ export const useSearch = ({
   }
 
   return {
-    // Note search
     searchMatches,
     currentMatchIndex,
     matchRefs,
@@ -179,7 +190,6 @@ export const useSearch = ({
     handleSearchKeyDown,
     handleClearSearch,
     
-    // Citation search
     citationSearchQuery,
     setCitationSearchQuery,
     citationMatches,
@@ -188,7 +198,7 @@ export const useSearch = ({
     handleNextCitationMatch,
     handlePreviousCitationMatch,
     handleCitationSearchKeyDown,
-    handleClearCitationSearch
+    handleClearCitationSearch,
   }
 }
 

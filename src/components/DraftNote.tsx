@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { EditIcon, DownloadIcon, CopyIcon, FocusIcon, ArrowUpRight } from "lucide-react"
+import { EditIcon, DownloadIcon, CopyIcon, Maximize2, ArrowUpRight } from "lucide-react"
 import { Button } from "./ui/button"
 import dummyResponse from "@/data/dummyResponse.json"
 import { useAppData } from "@/context/AppDataContext"
@@ -8,6 +8,7 @@ import type { ParsedCitation } from "@/types/citation"
 import { useDraftNote } from "@/hooks/useDraftNote"
 import { CriteriaEditModal } from "./CriteriaEditModal"
 import { parseCitationString } from "@/lib/citationUtils"
+
 const DraftNote = () => {
     const { setSelectedCitations, activeTab, setActiveTab, metCriteria, allCriteria } = useAppData()
     const { downloadAsText, copyToClipboard } = useDraftNote()
@@ -66,8 +67,8 @@ const DraftNote = () => {
                             variant="ghost" 
                             className="p-2 hover:bg-muted rounded-md transition-colors"
                             onClick={() => setIsFocusModalOpen(true)}
-                        >
-                            <FocusIcon className="w-4 h-4" />
+                        > 
+                            <Maximize2 className="w-4 h-4" />
                         </Button>
                     </div>
                 </div>
@@ -122,7 +123,6 @@ const DraftNote = () => {
                 onClose={() => setIsEditModalOpen(false)}
                 mode="edit"
                 criteria={currentCriteria}
-                activeTab={activeTab}
             />
             
             <CriteriaEditModal
@@ -130,7 +130,6 @@ const DraftNote = () => {
                 onClose={() => setIsFocusModalOpen(false)}
                 mode="focus"
                 criteria={currentCriteria}
-                activeTab={activeTab}
                 setIsEditModalOpen={setIsEditModalOpen}
                 setIsFocusModalOpen={setIsFocusModalOpen}
 

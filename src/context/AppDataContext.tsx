@@ -15,7 +15,6 @@ export const AppDataProvider = ({ children }: { children: ReactNode }) => {
   const allCriteria = dummyResponse.result_json.guideline_report.guidelines.sort((a: any, b: any) => a.guideline_number - b.guideline_number)
 
   const setSelectedCitations = (citations: ParsedCitation[], note: string) => {
-    console.log('setSelectedCitations', citations, note)
     setSelectedCitationsState(citations)
     setNoteText(note)
     setIsActive(true)
