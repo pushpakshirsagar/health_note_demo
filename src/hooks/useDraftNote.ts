@@ -11,7 +11,7 @@ export const useDraftNote = () => {
     try {
       const content = getCriteriaContent(criteria);
       navigator.clipboard.writeText(content)
-      toast.success("Content saved to clipboard")
+      toast.success("Text copied to clipboard")
     } catch (error) {
       toast.error('Error copying content to clipboard')
     }

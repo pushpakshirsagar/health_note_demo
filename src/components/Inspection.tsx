@@ -146,12 +146,11 @@ const Inspection = () => {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value)
-                setSelectedCitations([], noteText)
-                setIsActive(false)
               }}
               onKeyDown={handleSearchKeyDown}
             />
             <InputGroupAddon align="inline-end">
+              <SearchIcon className="w-4 h-4" />
               {searchQuery && (
                 <Button
                   variant="ghost"
@@ -162,19 +161,18 @@ const Inspection = () => {
                   <XIcon className="w-3 h-3" />
                 </Button>
               )}
-              <SearchIcon className="w-4 h-4" />
             </InputGroupAddon>
           </InputGroup>
           
           {searchQuery && searchMatches.length > 0 && (
-            <>
+            <div className="flex gap-0.5">
               <div className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
                 {currentMatchIndex + 1} of {searchMatches.length}
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
+                className="h-8 w-6"
                 onClick={handlePreviousMatch}
                 disabled={searchMatches.length === 0}
               >
@@ -183,13 +181,13 @@ const Inspection = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
+                className="h-8 w-6"
                 onClick={handleNextMatch}
                 disabled={searchMatches.length === 0}
               >
                 <ChevronDownIcon className="w-4 h-4" />
               </Button>
-            </>
+            </div>
           )}
         </div>
       </div>
@@ -200,9 +198,8 @@ const Inspection = () => {
       >
         {isActive && noteText? (
           <>
-            {/* Citation Search Input */}
-            <div className="mb-4 flex items-center gap-2">
-              <InputGroup className="w-full max-w-md">
+            <div className="mb-4 flex items-center justify-end gap-2">
+              <InputGroup className="w-1/3 max-w-md">
                 <InputGroupInput 
                   type="text" 
                   placeholder="Search in citations..." 
@@ -213,29 +210,33 @@ const Inspection = () => {
                   onKeyDown={handleCitationSearchKeyDown}
                 />
                 <InputGroupAddon align="inline-end">
+                  <SearchIcon className="w-4 h-4" />
                   {citationSearchQuery && (
                     <Button
                       variant="ghost"
                       size="sm"
                       className="h-6 w-6 p-0"
-                      onClick={handleClearCitationSearch}
+                      onClick={()=>{
+                        handleClearCitationSearch();
+                       setSelectedCitations([], noteText);
+                      setIsActive(false);
+                      }}
                     >
                       <XIcon className="w-3 h-3" />
                     </Button>
                   )}
-                  <SearchIcon className="w-4 h-4" />
                 </InputGroupAddon>
               </InputGroup>
               
               {citationSearchQuery && citationMatches.length > 0 && (
-                <>
+                <div className="flex gap-0.5">
                   <div className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
                     {currentCitationMatchIndex + 1} of {citationMatches.length}
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-8 w-6"
                     onClick={handlePreviousCitationMatch}
                     disabled={citationMatches.length === 0}
                   >
@@ -244,13 +245,13 @@ const Inspection = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-8 w-6"
                     onClick={handleNextCitationMatch}
                     disabled={citationMatches.length === 0}
                   >
                     <ChevronDownIcon className="w-4 h-4" />
                   </Button>
-                </>
+                </div>
               )}
             </div>
             
