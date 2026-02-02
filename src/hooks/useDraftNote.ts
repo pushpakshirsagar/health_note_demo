@@ -32,7 +32,7 @@ export const useDraftNote = () => {
     return content
   }, [])
 
-  const downloadAsText = useCallback((criteria:Guideline[]) => {
+  const downloadAsText = useCallback((criteria:Guideline[],activeTab:string) => {
     let content = "Utilization Review Draft Note\n"
     content += "=".repeat(50) + "\n\n"
 
@@ -46,7 +46,7 @@ export const useDraftNote = () => {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `criteria-${activeTab}-note.txt`
+    link.download = `${tabTitle.toLocaleLowerCase().replaceAll(' ', '-')}-note.txt`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

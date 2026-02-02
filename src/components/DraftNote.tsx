@@ -52,7 +52,7 @@ const DraftNote = () => {
                         <Button 
                             variant="ghost" 
                             className="p-2 hover:bg-muted rounded-md transition-colors"
-                            onClick={() => downloadAsText(currentCriteria)}
+                            onClick={() => downloadAsText(currentCriteria,activeTab)}
                         >
                             <DownloadIcon className="w-4 h-4" />
                         </Button>

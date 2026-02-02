@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback, use } from "react"
+import React, { useState, useEffect, useRef, useMemo } from "react"
 import type { ParsedCitation } from "@/types/citation"
-import { useAppData } from "@/context/AppDataContext"
 
 interface SearchMatch {
   startIndex: number

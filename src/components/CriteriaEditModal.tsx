@@ -27,6 +27,7 @@ export const CriteriaEditModal = ({
   const [editedCriteria, setEditedCriteria] = useState<Guideline[]>([])
   const { allCriteria, metCriteria } = useAppData()
   const [activeTab, setActiveTab] = useState("met")
+
   useEffect(() => {
     if (isOpen) {
       const currentCriteria = activeTab === "met" ? metCriteria : allCriteria
@@ -49,23 +50,21 @@ export const CriteriaEditModal = ({
       />
 
       {/* Modal */}
-      <div className="relative z-50 w-full max-w-4xl max-h-140 scroll-auto bg-background rounded-lg shadow-lg flex flex-col">
+      <div className="relative z-50 w-full max-w-4xl max-h-140 bg-background rounded-lg shadow-lg flex flex-col">
         
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-semibold">
             {mode === "edit" ? "Edit Criteria" : "Focus on Criteria"}
           </h2>
           <div className="flex items-center gap-2">
-
             <Button variant="ghost" size="icon" onClick={() => copyToClipboard(editedCriteria)}>
               <CopyIcon className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => downloadAsText(editedCriteria)}>
+            <Button variant="ghost" size="icon" onClick={() => downloadAsText(editedCriteria,activeTab)}>
               <DownloadIcon className="w-4 h-4" />
             </Button>
-
             {mode !== "edit" && (
               <>
                 <Button variant="ghost" size="icon" onClick={() => {
@@ -82,7 +81,8 @@ export const CriteriaEditModal = ({
           </div>
         </div>
 
-        <div className="p-4 border-b min-w-0 shrink-0">
+        {/* Tab Header */}
+        <div className="border-b min-w-0 shrink-0">
           <TabsList variant="line">
             <TabsTrigger value="met">Met Criteria</TabsTrigger>
             <TabsTrigger value="criteria">All Criteria</TabsTrigger>
@@ -90,9 +90,8 @@ export const CriteriaEditModal = ({
         </div>
 
         {/* Content */}
-         <TabsContent value={activeTab} className="mt-0">
-            <div className="flex-1 overflow-y-auto p-4">
-          <div className="space-y-4">
+        <TabsContent value={activeTab} className="mt-0 flex-1 overflow-y-auto p-4">
+          <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
             {editedCriteria.map((guideline: any) => (
               <div key={guideline.guideline_number} className="space-y-2">
                 <Textarea
@@ -111,13 +110,12 @@ export const CriteriaEditModal = ({
               </div>
             ))}
           </div>
-        </div>
-         </TabsContent> 
-          </Tabs>
+        </TabsContent>
 
-      
+        </Tabs>
       </div>
     </div>
   )
 }
+
 
