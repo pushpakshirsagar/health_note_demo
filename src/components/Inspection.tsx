@@ -93,7 +93,7 @@ const Inspection = () => {
     return (
       <div
         data-note-content
-        className="[&_.highlight-search]:bg-yellow-200 [&_.highlight-search-current]:bg-yellow-400 [&_.highlight-citation]:bg-blue-200 [&_.highlight-citation-current]:bg-blue-400"
+        className="[&_.highlight-search]:bg-yellow-200 [&_.highlight-search-current]:bg-yellow-400 [&_.highlight-citation]:bg-blue-200 [&_.highlight-citation-current]:bg-blue-400 [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-border [&_th]:bg-muted [&_th]:px-4 [&_th]:py-2 [&_th]:text-left [&_td]:border [&_td]:border-border [&_td]:px-4 [&_td]:py-2"
       >
         <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={rehypePlugins as import("unified").PluggableList}>{noteText}</ReactMarkdown>
       </div>

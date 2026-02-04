@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import type { CitationContextType, ParsedCitation } from '@/types/citation'
-import dummyResponse from "@/data/dummyResponse.json"
+import dummyResponse from "@/data/dummyResponse-2.json"
 
 const AppDataContext = createContext<CitationContextType | undefined>(undefined)
 
