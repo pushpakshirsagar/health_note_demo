@@ -7,6 +7,22 @@ import type { Guideline } from "@/types/citation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs"
 import { useAppData } from "@/context/AppDataContext"
 
+function combinedTextFromCriteria(criteria: Guideline[]): string {
+  return criteria.map((g) => `${g.guideline_number}. ${g.report}`).join("\n\n")
+}
+
+function parseCombinedToCriteria(combinedText: string, template: Guideline[]): Guideline[] {
+  if (!template.length) return []
+  // Split only when a new line starts with "number. " (double newline + number)
+  const parts = combinedText.split(/\n\n(?=\d+\. )/).map((s) => s.trim()).filter(Boolean)
+  return template.map((guideline) => {
+    const num = String(guideline.guideline_number)
+    const part = parts.find((p) => p.startsWith(`${num}. `))
+    const report = part ? part.slice(num.length + 2).trim() : guideline.report
+    return { ...guideline, report }
+  })
+}
+
 interface CriteriaEditModalProps {
   isOpen: boolean
   onClose: () => void
@@ -25,17 +41,17 @@ export const CriteriaEditModal = ({
 }: CriteriaEditModalProps) => {
   const { downloadAsText, copyToClipboard } = useDraftNote()
   const [editedCriteria, setEditedCriteria] = useState<Guideline[]>([])
+  const [combinedText, setCombinedText] = useState("")
   const { allCriteria, metCriteria } = useAppData()
   const [activeTab, setActiveTab] = useState("met")
 
+  const currentCriteria = activeTab === "met" ? metCriteria : allCriteria
+
   useEffect(() => {
-    if (isOpen) {
-      const currentCriteria = activeTab === "met" ? metCriteria : allCriteria
-      const initial: Guideline[] = []
-      currentCriteria.forEach((guideline: any) => {
-        initial.push(guideline)
-      })
+    if (isOpen && currentCriteria.length > 0) {
+      const initial = currentCriteria.map((g: Guideline) => ({ ...g }))
       setEditedCriteria(initial)
+      setCombinedText(combinedTextFromCriteria(initial))
     }
   }, [isOpen, activeTab])
 
@@ -91,26 +107,17 @@ export const CriteriaEditModal = ({
 
         {/* Content */}
         <TabsContent value={activeTab} className="mt-0 flex-1 overflow-y-auto p-4">
-          <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
-            {editedCriteria.map((guideline: any) => (
-              <div key={guideline.guideline_number} className="space-y-2">
-                <Textarea
-                  value={editedCriteria.find(g => g.guideline_number === guideline.guideline_number)?.report || guideline.report}
-                  disabled={mode === "focus"}
-                  onChange={(e) => {
-                    if (mode !== "focus") return;
-                    setEditedCriteria(prev => {
-                      const index = prev.findIndex(g => g.guideline_number === guideline.guideline_number)
-                      if (index !== -1) {
-                        prev[index].report = e.target.value
-                      }
-                      return [...prev]
-                    })
-                  }}
-                  className="min-h-24 border-none h-auto shadow-none disabled:opacity-100 !focus-visible:shadow-none focus:shadow-none" 
-                />
-              </div>
-            ))}
+          <div className="max-h-[calc(100vh-200px)]">
+            <Textarea
+              value={combinedText}
+              disabled={mode === "focus"}
+              onChange={(e) => {
+                const next = e.target.value
+                setCombinedText(next)
+                setEditedCriteria(parseCombinedToCriteria(next, editedCriteria))
+              }}
+              className="min-h-[calc(100vh-280px)] disabled:opacity-100 w-full resize-y border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 text-sm whitespace-pre-wrap"
+            />
           </div>
         </TabsContent>
 

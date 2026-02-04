@@ -194,71 +194,65 @@ const Inspection = () => {
 
       <div 
         ref={contentRef}
-        className="flex-1 p-4 overflow-y-auto overflow-x-hidden min-h-0 whitespace-pre-wrap"
+        className="flex-1 flex flex-col min-h-0 overflow-hidden"
       >
-        {isActive && noteText? (
+        {noteText && (
           <>
-            <div className="mb-4 flex items-center justify-end gap-2">
-              <InputGroup className="w-1/3 max-w-md">
-                <InputGroupInput 
-                  type="text" 
-                  placeholder="Search in citations..." 
-                  value={citationSearchQuery}
-                  onChange={(e) => {
-                    setCitationSearchQuery(e.target.value)
-                  }}
-                  onKeyDown={handleCitationSearchKeyDown}
-                />
-                <InputGroupAddon align="inline-end">
-                  <SearchIcon className="w-4 h-4" />
-                  {citationSearchQuery && (
+            {isActive && (
+              <div className="p-4 pb-0 flex items-center justify-end gap-2 shrink-0">
+                <InputGroup className="w-1/3 max-w-md">
+                  <InputGroupInput 
+                    type="text" 
+                    placeholder={`Source ${currentCitationMatchIndex + 1} of ${citationMatches.length}`} 
+                    value={`Source ${currentCitationMatchIndex + 1} of ${citationMatches.length}`} 
+                  />
+                  <InputGroupAddon align="inline-end">
+                    {citationSearchQuery && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={()=>{
+                          handleClearCitationSearch();
+                         setSelectedCitations([], noteText);
+                        setIsActive(false);
+                        }}
+                      >
+                        <XIcon className="w-3 h-3" />
+                      </Button>
+                    )}
+                  </InputGroupAddon>
+                </InputGroup>
+                
+                {citationSearchQuery && citationMatches.length > 0 && (
+                  <div className="flex gap-0.5">
                     <Button
                       variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={()=>{
-                        handleClearCitationSearch();
-                       setSelectedCitations([], noteText);
-                      setIsActive(false);
-                      }}
+                      size="icon"
+                      className="h-8 w-6"
+                      onClick={handlePreviousCitationMatch}
+                      disabled={citationMatches.length === 0}
                     >
-                      <XIcon className="w-3 h-3" />
+                      <ChevronUpIcon className="w-4 h-4" />
                     </Button>
-                  )}
-                </InputGroupAddon>
-              </InputGroup>
-              
-              {citationSearchQuery && citationMatches.length > 0 && (
-                <div className="flex gap-0.5">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
-                    {currentCitationMatchIndex + 1} of {citationMatches.length}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-6"
+                      onClick={handleNextCitationMatch}
+                      disabled={citationMatches.length === 0}
+                    >
+                      <ChevronDownIcon className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-6"
-                    onClick={handlePreviousCitationMatch}
-                    disabled={citationMatches.length === 0}
-                  >
-                    <ChevronUpIcon className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-6"
-                    onClick={handleNextCitationMatch}
-                    disabled={citationMatches.length === 0}
-                  >
-                    <ChevronDownIcon className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
+                )}
+              </div>
+            )}
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 whitespace-pre-wrap">
+              {renderHighlightedText()}
             </div>
-            
-            {renderHighlightedText()}
-
           </>
-        ) : <>{renderHighlightedText()}</>}
+        )}
       </div>
     </div>
   )

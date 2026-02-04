@@ -6,7 +6,7 @@ const AppDataContext = createContext<CitationContextType | undefined>(undefined)
 
 export const AppDataProvider = ({ children }: { children: ReactNode }) => {
   const [selectedCitations, setSelectedCitationsState] = useState<ParsedCitation[]>([])
-  const [noteText, setNoteText] = useState<string>('')
+  const [noteText, setNoteText] = useState<string>(dummyResponse.result_json.note)
   const [isActive, setIsActive] = useState<boolean>(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("met")

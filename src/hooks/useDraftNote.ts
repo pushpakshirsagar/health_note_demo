@@ -22,9 +22,6 @@ export const useDraftNote = () => {
     let content: string = "";
     criteria.forEach((guideline) => {
       content += `${guideline.guideline_number}. ${guideline.report}\n`
-      if (guideline.citations && guideline.citations.length > 0) {
-        content += `${guideline.citations.length}\n`
-      }
       content += "\n"
     })
     return content
