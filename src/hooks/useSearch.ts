@@ -188,7 +188,7 @@ const debouncedQuery = useDebouncedValue(searchQuery, 250)
     handlePreviousMatch,
     handleSearchKeyDown,
     handleClearSearch,
-    
+    debouncedSearchQuery: debouncedQuery,
     citationSearchQuery,
     setCitationSearchQuery,
     citationMatches,

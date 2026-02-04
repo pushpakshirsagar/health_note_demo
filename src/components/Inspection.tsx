@@ -1,10 +1,13 @@
 import { useEffect, useRef } from "react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import rehypeRaw from "rehype-raw"
+import { rehypeHighlight } from "@/lib/rehypeHighlight"
 import { InputGroup, InputGroupInput, InputGroupAddon } from "@/components/ui/input-group"
 import { Button } from "@/components/ui/button"
 import { useAppData } from "@/context/AppDataContext"
 import { useSearch } from "@/hooks/useSearch"
 import { SearchIcon, ChevronUpIcon, ChevronDownIcon, XIcon } from "lucide-react"
-import React from "react"
 
 const Inspection = () => {
   const { selectedCitations, noteText, isActive, setIsActive, setSelectedCitations, setSearchQuery, searchQuery } = useAppData()
@@ -14,16 +17,14 @@ const Inspection = () => {
   const {
     searchMatches,
     currentMatchIndex,
-    matchRefs,
     handleNextMatch,
     handlePreviousMatch,
     handleSearchKeyDown,
     handleClearSearch,
+    debouncedSearchQuery,
     citationSearchQuery,
-    setCitationSearchQuery,
     citationMatches,
     currentCitationMatchIndex,
-    citationMatchRefs,
     handleNextCitationMatch,
     handlePreviousCitationMatch,
     handleCitationSearchKeyDown,
@@ -37,102 +38,66 @@ const Inspection = () => {
   })
 
 
-  //scroll to current match
+  // Scroll to current search match (highlights from rehype plugin use data-search-match-index)
   useEffect(() => {
-    if (currentMatchIndex >= 0 && matchRefs.current[currentMatchIndex] && contentRef.current) {
-      matchRefs.current[currentMatchIndex]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      })
-    }
-  }, [currentMatchIndex, matchRefs])
+    if (currentMatchIndex < 0 || !contentRef.current || !searchQuery) return
+    const el = contentRef.current.querySelector<HTMLElement>(`[data-search-match-index="${currentMatchIndex}"]`)
+    el?.scrollIntoView({ behavior: "auto", block: "start" })
+  }, [currentMatchIndex, searchQuery])
 
   useEffect(() => {
-    if (currentCitationMatchIndex >= 0 && citationMatchRefs.current[currentCitationMatchIndex] && contentRef.current) {
-      citationMatchRefs.current[currentCitationMatchIndex]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      })
-    }
-  }, [currentCitationMatchIndex, citationMatchRefs])
-
-  useEffect(() => {
-    if (isActive && selectedCitations.length > 0 && contentRef.current && !searchQuery) {
-      const firstCitation = selectedCitations[0]
-      const element = contentRef.current.querySelector(`[data-citation-start="${firstCitation.startIndex}"]`)
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    if (!isActive || selectedCitations.length === 0 || !contentRef.current || searchQuery) return
+    const scrollToFirst = () => {
+      if (!contentRef.current) return
+      const byDataIndex = contentRef.current.querySelector<HTMLElement>(`[data-citation-match-index="0"]`)
+      if (byDataIndex) {
+        byDataIndex.scrollIntoView({ behavior: "auto", block: "start" })
+        return
       }
+      const noteEl = contentRef.current.querySelector<HTMLElement>("[data-note-content]")
+      if (!noteEl) return
+      const target = findElementContainingText(noteEl, selectedCitations[0].citedText)
+      if (target) target.scrollIntoView({ behavior: "auto", block: "start" })
     }
-  }, [selectedCitations, isActive, searchQuery])
-
-  const renderHighlightedText = () => {
-
-    if (!noteText) return null
-    const allHighlights = [
-      ...searchMatches.map((m, idx) => ({ ...m, type: 'search' as const, matchIndex: idx })),
-      ...citationMatches.map((m, idx) => ({ ...m, type: 'citationSearch' as const, matchIndex: idx }))
-    ].sort((a, b) => a.startIndex - b.startIndex)
-
-    if (allHighlights.length === 0) {
-      return <div className="text-sm leading-relaxed">{noteText}</div>
-    }
-
-    const parts: React.ReactNode[] = []
-    let lastIndex = 0
-
-    allHighlights.forEach((highlight, idx) => {
-      // Add text before highlight
-      if (highlight.startIndex > lastIndex) {
-        parts.push(
-          <span key={`text-${idx}`}>
-            {noteText.substring(lastIndex, highlight.startIndex)}
-          </span>
-        )
-      }
-
-      // Add highlighted text
-      const isCurrentSearchMatch = highlight.type === 'search' && 
-        'matchIndex' in highlight && 
-        highlight.matchIndex === currentMatchIndex
-
-      const isCurrentCitationMatch = highlight.type === 'citationSearch' && 
-        'matchIndex' in highlight && 
-        highlight.matchIndex === currentCitationMatchIndex
-
-      const className = highlight.type === 'citationSearch'
-        ? isCurrentCitationMatch ? "bg-blue-400": "bg-blue-200"
-        : isCurrentSearchMatch   ? "bg-yellow-400" : "bg-yellow-200"
-
-      parts.push(
-        <span
-          key={`highlight-${idx}`}
-          ref={(el) => {
-            if (highlight.type === 'search' && 'matchIndex' in highlight) {
-              matchRefs.current[highlight.matchIndex] = el
-            }
-            if (highlight.type === 'citationSearch' && 'matchIndex' in highlight) {
-              citationMatchRefs.current[highlight.matchIndex] = el
-            }
-          }}
-          className={className}
-        >
-          {noteText.substring(highlight.startIndex, highlight.endIndex)}
-        </span>
-      )
-
-      lastIndex = highlight.endIndex
+    const rafId = requestAnimationFrame(() => {
+      requestAnimationFrame(scrollToFirst)
     })
+    return () => cancelAnimationFrame(rafId)
+  }, [selectedCitations, isActive, searchQuery, citationMatches.length])
 
-    if (lastIndex < noteText.length) {
-      parts.push(
-        <span key="text-end">
-          {noteText.substring(lastIndex)}
-        </span>
-      )
+  // Find DOM element that contains the given text (used for scroll-to-citation after markdown/HTML render)
+  const findElementContainingText = (root: HTMLElement, searchText: string): HTMLElement | null => {
+    const normalized = searchText.trim().replace(/\s+/g, " ")
+    for (const len of [80, 40, 20]) {
+      const chunk = normalized.slice(0, len)
+      if (!chunk) continue
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null)
+      let node: Node | null = walker.nextNode()
+      while (node) {
+        const text = (node.textContent ?? "").replace(/\s+/g, " ")
+        if (text.includes(chunk)) return node.parentElement as HTMLElement
+        node = walker.nextNode()
+      }
     }
+    return null
+  }
 
-    return <div className="text-sm leading-relaxed">{parts}</div>
+  const citationHighlightTexts = citationMatches.map((m) => noteText.slice(m.startIndex, m.endIndex))
+
+  const renderNoteContent = () => {
+    if (!noteText) return null
+    const rehypePlugins = [
+      rehypeRaw,
+      [rehypeHighlight, { searchQuery: debouncedSearchQuery ?? "", citationHighlightTexts, currentSearchMatchIndex: currentMatchIndex, currentCitationMatchIndex }],
+    ]
+    return (
+      <div
+        data-note-content
+        className="[&_.highlight-search]:bg-yellow-200 [&_.highlight-search-current]:bg-yellow-400 [&_.highlight-citation]:bg-blue-200 [&_.highlight-citation-current]:bg-blue-400"
+      >
+        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={rehypePlugins as import("unified").PluggableList}>{noteText}</ReactMarkdown>
+      </div>
+    )
   }
 
   return (
@@ -249,7 +214,7 @@ const Inspection = () => {
               </div>
             )}
             <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 whitespace-pre-wrap">
-              {renderHighlightedText()}
+              {renderNoteContent()}
             </div>
           </>
         )}
